@@ -1,0 +1,55 @@
+library(dataMaid)
+
+makeDataReport(dsh)
+
+makeDataReport(dsh, replace=TRUE,  render = FALSE, openResult = FALSE)
+
+detach('rapport')
+
+
+library(rapport)
+rapport.ls()
+x=rapport("ANOVA", dsh, resp = "LDL", fac = "Group")
+rapport.export(x,format="html")
+
+dsh1=read.csv('dsh.csv')
+summary(dsh$Age)
+x2= rapport("Descriptives", dsh1, var ='Sex')
+
+rapport.export(x2,format="html")
+
+x3=rapport("Crosstable", dsh1, row ='Smoker',col='Group')
+
+rapport.export(x3,format="html")
+
+
+
+library(ggstatsplot)
+
+#
+ggpiestats(data=dsh,main="Sex",condition="Group",slice.label = "both",messages = FALSE,facet.proptest = FALSE,
+results.subtitle = FALSE)
+
+grouped_gghistostats(data=dsh,grouping.var = Group,x=LDL,results.subtitle = FALSE,test.line.labeller = FALSE,binwidth = 5,
+                     ggplot.component = list( # modify the defaults from `ggstatsplot` for each plot
+                       ggplot2::scale_y_continuous(breaks = seq(0, 10, 1), limits = (c(0, 10)))),
+                       normal.curve = TRUE, # superimpose a normal distribution curve
+                       normal.curve.color = "red",
+                       ncol=1,
+                      
+                      ggtheme=ggthemes::theme_fivethirtyeight()
+                     )
+
+##
+
+?ggpiestats
+
+ggpiestats(data=dsh,main="Smoker",condition="Group",slice.label = "both",messages = TRUE,facet.proptest = FALSE,
+           results.subtitle = TRUE)
+
+dsh %>% ggplot(aes(x=LDL))+geom_histogram()+facet_wrap(~Group,scales = "free")
+
+library(jtools)
+lm(ASCVD~TSH+FBS,data=dsh) %>% center_mod() %>% summary()
+
+cor(dsh$ASCVD,dsh$TSH)

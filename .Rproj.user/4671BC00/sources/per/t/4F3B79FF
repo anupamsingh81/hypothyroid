@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1559722166104.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2966361642",
+    "id" : "4F3B79FF",
+    "lastKnownWriteTime" : 1559738027,
+    "last_content_update" : 1559738027871,
+    "path" : "~/Documents/hypothyroid/hypo.Rmd",
+    "project_path" : "hypo.Rmd",
+    "properties" : {
+        "cursorPosition" : "30,68",
+        "scrollLine" : "18",
+        "tempName" : "Untitled2"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

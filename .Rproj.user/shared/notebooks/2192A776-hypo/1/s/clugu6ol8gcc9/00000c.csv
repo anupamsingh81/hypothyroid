@@ -1,0 +1,7 @@
+"0","fig2=grouped_gghistostats(data=dsh,grouping.var = Group,x=Age,results.subtitle = FALSE,test.line.labeller = FALSE,binwidth = 5,ggplot.component = list( # modify the defaults from `ggstatsplot` for each plot"
+"0","                       ggplot2::scale_y_continuous(breaks = seq(0, 10, 1), limits = (c(0, 10)))),"
+"0","                      messages = FALSE)"
+"0","                     "
+"0","              "
+"0","                     "
+"0","fig2"

@@ -1,0 +1,4 @@
+"0","fig1=gghistostats("
+"0","  data = dsh, # dataframe from which variable is to be taken"
+"0","  x = Age,results.subtitle = FALSE,test.line.labeller = FALSE,binwidth = 5,messages = FALSE)"
+"0","fig1"

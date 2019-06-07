@@ -1,0 +1,195 @@
+---
+title: "Dyslipidemia,Hypothyroidism and Diabetes"
+author: "Aditya , Anupam Singh"
+date: "05/06/2019"
+output: html_document
+---
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.align='center',fig.path='Figs/',
+                      echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(ggstatsplot)
+library(finalfit)
+library(broom)
+library(jtools)
+```
+
+# Summary Demographic Table
+
+
+
+```{r}
+dsh=read_csv('dsh.csv')
+explanatory=colnames(dsh)
+exclude=c("cursmoker","X1","trtbp","agec")
+explain=setdiff(explanatory,exclude)
+#prepare ste of variables
+dependent="Group"
+dsh$Group=factor(dsh$Group,levels=c("DM","DM+SCH","DM+HYPOTHYROID"))
+dsh %>% summary_factorlist(dependent,explanatory = explain,p=TRUE,add_dependent_label = TRUE)->t2
+knitr::kable(t2, row.names=FALSE)
+```
+
+
+# Demographic Variables
+
+Distribution of Demographic Variables in Our Population
+
+
+## Histogram Showing  Age distribution in Our Population
+
+
+```{r}
+fig1=gghistostats(
+  data = dsh, # dataframe from which variable is to be taken
+  x = Age,results.subtitle = FALSE,test.line.labeller = FALSE,binwidth = 5,messages = FALSE)
+fig1
+```
+**Comment**
+
+
+
+Overall Mean of Age in our population is 37.03, somewhere between 35.12 and 38.93 with the standard error of 0.9719.
+
+The standard deviation equals to 8.416 , which shows  how much variation exists from the average. 
+Maximum age in our Population is 57 and minimum age is 19.
+
+## Comparative Histogram Of  Age distribution in Our Three subgroups
+
+
+```{r}
+fig2=grouped_gghistostats(data=dsh,grouping.var = Group,x=Age,results.subtitle = FALSE,test.line.labeller = FALSE,binwidth = 5,ggplot.component = list( # modify the defaults from `ggstatsplot` for each plot
+                       ggplot2::scale_y_continuous(breaks = seq(0, 10, 1), limits = (c(0, 10)))),
+                      messages = FALSE)
+                     
+              
+                     
+fig2
+```
+
+**Interpretation**
+
+
+Here we see histograms of Age in all three groups with binwidth of 5.
+As shown in summary demographic Table 1, there is no statistically difference in age between 3 subgroups and they are age matched.
+
+
+
+
+
+
+##   Pie chart  showing Gender Distribution in our population
+
+
+```{r}
+fig3=ggpiestats(data=dsh,main="Sex",slice.label = "both",messages = FALSE,facet.proptest = FALSE,
+results.subtitle = TRUE)
+fig3
+```
+
+**Comment**
+
+Thus we see that there is significantly higher number of Females(*p=0.08*) in Our Population than men.
+
+Let' now see comparative distribution of Gender in Subgroup
+
+## Comparative Pie Chart Of  Gender distribution in Our Three subgroups
+
+
+```{r}
+fig4=ggpiestats(data=dsh,main="Sex",condition="Group",slice.label = "both",messages = FALSE,facet.proptest = FALSE,
+results.subtitle = FALSE)
+fig4
+
+```
+
+**Comment**
+
+Thus we see that Females are higher in all subgroups and hence population is matched vis-a-vis gender.
+
+
+##Pie chart showing  Distribution of Smokers in Our Population
+
+```{r}
+fig5=ggpiestats(data=dsh,main="Smoker",slice.label = "both",messages = FALSE,facet.proptest = FALSE,
+results.subtitle = TRUE)
+fig5
+```
+
+**Comment**
+
+Thus we see that Non-smokers are significantly higher(*p<0.0001*) in our population in contrast to smokers.
+
+
+##Comparative Pie chart showing  Distribution of Smokers in Our Subgroups
+
+```{r}
+fig6=ggpiestats(data=dsh,main="Smoker",condition="Group",slice.label = "both",messages = FALSE,facet.proptest = FALSE,
+results.subtitle = TRUE)
+fig6
+```
+
+**Comment**
+
+Thus we see that while  Non-smokers are significantly higher in each subgroup there is no statistically significant inter-group difference in proportion of smokers(*p=0.08*) in our population 
+
+
+# Outcomes of Interest
+
+```{r}
+dsh %>% select_if(is.numeric)  %>%  map_df(~tidy( TukeyHSD(aov(.~dsh$Group)))) %>%
+mutate(term=rep(names,each=3)) %>% filter(!term=="X1") %>% arrange(term) %>% filter(term=="LDL") %>% 
+mutate(pvalue=ifelse(adj.p.value<0.001,"P<0.001",adj.p.value)) %>% 
+mutate(signifcance= ifelse(adj.p.value<0.05,"significant","non-significant")) %>% 
+select(-adj.p.value) %>% rename(variable=term)->posthoc
+
+dsh%>%
+  select_if(is.numeric) %>% 
+  map_df(~tidy(cor.test(.x,dsh$TSH))) %>% 
+  add_column(variable=names) %>% 
+mutate(p.value=round(p.value,digits=3),Pvalue=ifelse(p.value<0.001,"P<0.001",p.value)) %>% 
+  mutate(significance= ifelse(p.value<0.05,"significant","non-significant")) %>% 
+  select(-p.value,-parameter,-statistic,-method,-alternative) %>% 
+  rename(correlation=estimate) %>% filter(!variable%in%c("X1","TSH")) %>% 
+  select(variable,correlation,conf.low,conf.high,Pvalue,significance) %>% arrange(desc(correlation))->tsh_correlation
+
+   dsh %>% select_if(is.numeric)  %>%  map_df(~tidy(aov(.~dsh$Group))) %>% 
+  mutate(term=rep(names,each=2)) %>% 
+mutate(p.value=round(p.value,digits=3),Pvalue=ifelse(p.value<0.001,"P<0.001",p.value)) %>% 
+  mutate(significance= ifelse(p.value<0.05,"significant","non-significant")) %>%
+  rename(variable=term,`Sum Square`=sumsq,`Mean Square`=meansq,`F value`=statistic) %>% 
+  select(-p.value) %>% replace_na(list(statistic=" ",`F value`=" ",Pvalue=" ",significance= " ")) %>% 
+  rowid_to_column()->anovastats 
+
+```
+
+
+##Comparative BoxPlot  showing  Distribution of LDL in Our Subgroups
+
+
+
+
+```{r}
+fig7=ggstatsplot::ggbetweenstats(
+  data = dsh,
+  x = Group,
+  y = LDL,
+  messages = FALSE,
+  pairwise.comparisons = TRUE,         # display results from pairwise comparisons 
+  pairwise.display = "all",    # display only significant pairwise comparisons 
+  pairwise.annotation = "p.value",     # annotate the pairwise comparisons using p-values
+  p.adjust.method = "fdr",
+  plot.type = "box",
+  results.subtitle = FALSE
+)
+fig7=fig7+labs(caption = " ")
+fig7
+```
+
+**Comment**
+
+Thus we see that while  Non-smokers are significantly higher in each subgroup there is no statistically significant inter-group difference in proportion of smokers(*p=0.08*) in our population 
+

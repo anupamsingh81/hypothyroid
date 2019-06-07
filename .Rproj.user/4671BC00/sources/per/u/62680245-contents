@@ -1,0 +1,34 @@
+dsh %>% select_if(is.numeric)  %>%  map_df(~tidy( TukeyHSD(aov(.~dsh$Group)))) %>%
+mutate(term=rep(names,each=3)) %>% filter(!term=="X1") %>% arrange(term) %>% filter(term=="LDL") %>% 
+mutate(pvalue=ifelse(adj.p.value<0.001,"P<0.001",adj.p.value)) %>% 
+mutate(signifcance= ifelse(adj.p.value<0.05,"significant","non-significant")) %>% 
+select(-adj.p.value) %>% rename(variable=term)
+    
+
+                                                                         
+                                                                                                                
+
+dsh %>% select_if(is.numeric) %>% names()  ->names
+
+dsh%>%
+  select_if(is.numeric) %>% 
+  map_df(~tidy(cor.test(.x,dsh$TSH))) %>% 
+  add_column(variable=names) %>% 
+mutate(p.value=round(p.value,digits=3),Pvalue=ifelse(p.value<0.001,"P<0.001",p.value)) %>% 
+  mutate(significance= ifelse(p.value<0.05,"significant","non-significant")) %>% 
+  select(-p.value,-parameter,-statistic,-method,-alternative) %>% 
+  rename(correlation=estimate) %>% filter(!variable%in%c("X1","TSH")) %>% 
+  select(variable,correlation,conf.low,conf.high,Pvalue,significance) %>% arrange(desc(correlation))
+
+
+dsh %>% select_if(is.numeric)  %>%  map_df(~tidy(aov(.~dsh$Group))) %>% 
+  mutate(term=rep(names,each=2)) %>% 
+mutate(p.value=round(p.value,digits=3),Pvalue=ifelse(p.value<0.001,"P<0.001",p.value)) %>% 
+  mutate(significance= ifelse(p.value<0.05,"significant","non-significant")) %>%
+  rename(variable=term,`Sum Square`=sumsq,`Mean Square`=meansq,`F value`=statistic) %>% 
+  select(-p.value) %>% replace_na(list(statistic=" ",`F value`=" ",Pvalue=" ",significance= " ")) %>% 
+  rowid_to_column()
+  filter(variable=="X1") %>% rowid_to_column() %>% mutate(variable=ifelse(rowid==2,"Residuals",variable)) %>% 
+  select(-rowid)
+
+tidy(aov(dsh$LDL~dsh$Group)) %>% mutate(sign=ifelse(p.value<0.001,"<0.001",p.value))
